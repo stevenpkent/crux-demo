@@ -618,6 +618,35 @@
  node
  (crux/submit-tx node [[:crux.tx/put kepra-5]]))
 
+(def test-traveler {:crux.db/id :origin-planet/test-traveler
+                    :chosen-name "Test"
+                    :given-name "Test Traveler"
+                    :passport-number (java.util.UUID/randomUUID)
+                    :stamps []
+                    :penalties []})
+
+(def test-traveler2 {:crux.db/id :origin-planet/new-test-traveler
+                     :chosen-name "Testy"
+                     :given-name "Test Traveler"
+                     :passport-number (java.util.UUID/randomUUID)
+                     :stamps []
+                     :penalties []})
+
+;; application of await-tx
+(defn ingest-and-query
+  "Ingests the travelers document, returns the passport number once the transaction is complete"
+  [traveler-doc node]
+  (crux/await-tx node 
+                 (crux/submit-tx node [[:crux.tx/put traveler-doc]]))
+  (crux/q
+   (crux/db node)
+   {:find '[?p-n]
+    :where '[[traveler :crux.db/id id]
+             [traveler :passport-number ?p-n]]
+    :args [{'id (:crux.db/id traveler-doc)}]}))
+
+
+
 
 
 
